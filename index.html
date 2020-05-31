@@ -1,0 +1,229 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/jquery/3.2.1/jquery.min.js"></script>
+    <script src="./javascript/app.js"></script>
+
+    <title>Board Game</title>
+</head>
+
+<body>
+
+    <div id="pieceCreation">
+
+        <h2>Create Your Piece</h2>
+
+        <div id="definingPieceNumber">
+            <label for="pieceNumber">Enter Piece Number:</label>
+            <input type="number" id="pieceNumber" name="pieceNumber" min="1" max="50">
+        </div>
+
+        <div id="bodyCompDiv">
+            <label for="bodyComp">Body Composition:</label>
+
+            <select name="bodyComp" id="bodyComp">
+                <option value="Spirit">Spirit</option>
+                <option value="Snake">Snake</option>
+                <option value="Plant">Plant</option>
+                <option value="Stone">Stone</option>
+                <option value="Fish-Human">Fish Human</option>
+                <option value="Android">Android</option>
+            </select>
+
+
+            <label for="bodyLevel">Body Composition Level:</label>
+
+            <select name="bodyLevel" id="bodyLevel">
+                <option value="1">1</option>
+                <option value="2">2</option>
+                <option value="3">3</option>
+                <option value="4">4</option>
+                <option value="5">5</option>
+            </select>
+
+        </div>
+
+
+
+        <div id="astrologyDiv">
+            <label for="astrology">Astrology:</label>
+
+            <select name="astrology" id="astrology">
+                <option value="Yellow-Moon">Born under the Yellow Moon</option>
+                <option value="redStar">Born under the Red Star</option>
+                <option value="Hollow-Cloud">Born under the Hollow Cloud</option>
+            </select>
+
+
+            <label for="astrologyLevel">Body Composition Level:</label>
+
+            <select name="astrologyLevel" id="astrologyLevel">
+                <option value="1">1</option>
+                <option value="2">2</option>
+                <option value="3">3</option>
+                <option value="4">4</option>
+                <option value="5">5</option>
+            </select>
+
+        </div>
+
+
+
+        <div id="movement">
+            <label for="movementDirection">Movement Direction:</label>
+
+            <select name="movementDirection" id="movementDirection">
+                <option value="forward">Forward</option>
+                <option value="diagonal">Diagonal</option>
+            </select>
+
+
+            <label for="movementDistance">Movement Distance:</label>
+
+            <select name="movementDistance" id="movementDistance">
+                <option value="1">1 Tile</option>
+                <option value="2">2 Tiles</option>
+                <option value="3">3 Tiles</option>
+                <option value="4">4 Tiles</option>
+                <option value="5">5 Tiles</option>
+            </select>
+
+        </div>
+
+
+
+        <div id="shield">
+            <label for="shieldType">Shield Type:</label>
+
+            <select name="shieldType" id="shieldType">
+                <option value="skin">Skin</option>
+                <option value="scales">Scales</option>
+                <option value="cyber">Cyber</option>
+            </select>
+
+
+            <label for="shieldLevel">Shield Level:</label>
+
+            <select name="shieldLevel" id="shieldLevel">
+                <option value="1">1</option>
+                <option value="2">2</option>
+                <option value="3">3</option>
+                <option value="4">4</option>
+                <option value="5">5</option>
+            </select>
+
+        </div>
+
+
+
+        <div id="attack">
+            <label for="attackType">Attack Type:</label>
+
+            <select name="attackType" id="attackType">
+                <option value="spiked">Skin</option>
+                <option value="scales">Scales</option>
+                <option value="cyber">Cyber</option>
+            </select>
+
+
+            <label for="attackLevel">Attack Level:</label>
+
+            <select name="attackLevel" id="attackLevel">
+                <option value="1">1</option>
+                <option value="2">2</option>
+                <option value="3">3</option>
+                <option value="4">4</option>
+                <option value="5">5</option>
+            </select>
+
+            <p>Attack Range:</p>
+
+                <div>
+                    <input type="checkbox" id="melee" class="attackRange" name="melee">
+                    <label for="melee">Melee</label>
+                </div>
+
+                <div>
+                    <input type="checkbox" id="1TileForward" class="attackRange" name="1TileForward">
+                    <label for="1TileForward">1 Tile Forward</label>
+                </div>
+
+                <div>
+                    <input type="checkbox" id="1TileDiagonal" class="attackRange" name="1TileDiagonal">
+                    <label for="1TileDiagonal">1 Tile Diagonal</label>
+                </div>
+
+                <div>
+                    <input type="checkbox" id="1TileForwardAbove" class="attackRange" name="1TileForwardAbove">
+                    <label for="1TileForwardAbove">1 Tile Forward Above</label>
+                </div>
+
+                <div>
+                    <input type="checkbox" id="1TileDiagonalAbove" class="attackRange" name="1TileDiagonalAbove">
+                    <label for="1TileDiagonalAbove">1 Tile Diagonal Above</label>
+                </div>
+
+                <div>
+                    <input type="checkbox" id="1TileForwardlBelow" class="attackRange" name="1TileForwardlBelow">
+                    <label for="1TileForwardlBelow">1 Tile Forward Below</label>
+                </div>
+
+                <div>
+                    <input type="checkbox" id="1TileDiagonalBelow" class="attackRange" name="1TileDiagonalBelow">
+                    <label for="1TileDiagonalBelow">1 Tile Diagonal Below</label>
+                </div>
+            
+
+        </div>
+
+
+        <div id="collectRes">
+            <p>Collect Resources:</p>
+
+            <div>
+                <input type="checkbox" id="intellegence" name="intellegence">
+                <label for="intellegence">Intellegence</label>
+                <br>
+                <label for="intLvl">Intellegence Level:</label>
+                <select name="intLvl" id="intLvl">
+                    <option value="1">1</option>
+                    <option value="2">2</option>
+                    <option value="3">3</option>
+                    <option value="4">4</option>
+                    <option value="5">5</option>
+                </select>
+            </div>
+            
+
+            <div>
+                <input type="checkbox" id="knowledge" name="knowledge">
+                <label for="knowledge">Knowledge</label>
+                <br>
+                <label for="knoLvl">Knowledge Level:</label>
+                <select name="knoLvl" id="knoLvl">
+                    <option value="1">1</option>
+                    <option value="2">2</option>
+                    <option value="3">3</option>
+                    <option value="4">4</option>
+                    <option value="5">5</option>
+                </select>
+            </div>
+            
+
+        </div>
+
+
+
+        <button id="createPiece">Create Piece</button>
+
+
+    </div>
+
+
+</body>
+
+</html>
