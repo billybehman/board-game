@@ -9,11 +9,17 @@ module.exports = function (sequelize, DataTypes) {
         }
     })
 
-    // Player.associate = function (models) {
-    //     Player.hasMany(models.Piece, {
-    //         onDelete: "cascade"
-    //     })
-    // }
+    Player.associate = function (models) {
+        Player.hasMany(models.Piece, {
+            onDelete: "cascade"
+        })
+    }
+
+    Player.associate = function (models) {
+        Player.hasMany(models.Resource, {
+            onDelete: "cascade"
+        })
+    }
 
     return Player
 }

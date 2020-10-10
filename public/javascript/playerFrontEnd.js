@@ -7,7 +7,7 @@ $("#playerFindSubmit").on("click", function() {
         url: "/api/players/" + name,
     }).then(function(data) {
         console.log(data)
-
+        location.replace("/board")
     })
 })
 
@@ -26,6 +26,8 @@ $("#playerCreateSubmit").on("click", function() {
         data: name
     }).then(function(data) {
         console.log(data)
-
+        location.replace("/board")
     })
 })
+
+

@@ -10,16 +10,20 @@ module.exports = function (app) {
 
     app.get("/create-piece", function (req, res) {
         res.render("createPiece")
-        console.log(req.session.name)
+        console.log("/create piece, session id is: " + req.sessionID)
+        console.log("name is: " + req.session.name)
     });
 
     app.get("/board", function (req, res) {
         res.render("board")
+        console.log("/board, session id is: " + req.sessionID)
+        console.log("name is: " + req.session.name)
     });
 
     app.get("/", function (req, res) {
         res.render("playerPage")
-        console.log(req.session)
+        console.log("/, session id is: " + req.sessionID)
     });
 
 }
+

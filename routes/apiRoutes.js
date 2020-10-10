@@ -7,7 +7,7 @@ const Op = Sequelize.Op;
 
 module.exports = function (app) {
 
-    app.post("/api/add-pieces", function(req, res) {
+    app.post("/api/add-pieces", function (req, res) {
         console.log(req.body)
         var bodyCompType = req.body.bodyCompType
         var bodyCompLvl = req.body.bodyCompLvl
@@ -35,19 +35,32 @@ module.exports = function (app) {
             attackLvl: attackLvl,
             attackDistance: attackDistance,
             intelligenceCollect: intelligenceCollect,
-            knowledgeCollect: knowledgeCollect
+            knowledgeCollect: knowledgeCollect,
+            PlayerId: req.session.playerId
         }).then(function (data) {
             console.log(data)
-        })
-    })
-
-    app.get("/api/pieces", function(req, res) {
-        db.Piece.findAll({}).then(function(data) {
             res.json(data)
         })
     })
 
-    app.post("/api/add-tiles", function(req, res) {
+    app.get("/api/pieces", function (req, res) {
+        db.Piece.findAll({}).then(function (data) {
+            res.json(data)
+        })
+    })
+
+    app.post("/api/starting-res", function (req, res) {
+        let foreignKey = req.session.playerId
+        console.log("player id is: " + foreignKey)
+        db.Resource.create({
+            PlayerId: foreignKey
+        }).then(function (data) {
+            console.log(data)
+            res.json(data)
+        })
+    })
+
+    app.post("/api/add-tiles", function (req, res) {
         db.Tile.create({
             x: req.body.x,
             y: req.body.y,
@@ -59,8 +72,8 @@ module.exports = function (app) {
         })
     })
 
-    app.get("/api/tiles", function(req, res) {
-        db.Tile.findAll({}).then(function(data) {
+    app.get("/api/tiles", function (req, res) {
+        db.Tile.findAll({}).then(function (data) {
             res.json(data)
         })
     })
@@ -70,30 +83,94 @@ module.exports = function (app) {
             where: {
                 name: req.params.name
             }
-        }).then(function(data) {
+        }).then(function (data) {
             req.session.name = data[0].name
+            req.session.playerId = data[0].id
+            console.log("new data: ", data)
+            console.log("api route, " + req.sessionID)
             res.json(data)
-            console.log(data)
-            console.log(req.session)
         })
     });
 
     app.post("/api/add-player", function (req, res) {
         let thePlayer = req.body.name
-        console.log("thePlayer")
+        console.log("The player is " + thePlayer)
         db.Player.create({
             name: thePlayer
-        }).then(function(data) {
-            console.log(data)
+        }).then(function (data) {
+            console.log("Here's the data ", data)
+            req.session.name = data.dataValues.name
+            req.session.playerId = data.dataValues.id
             res.json(data)
         })
     })
 
-    app.get("/api/all-players", function(req, res) {
-        db.Player.findAll({}).then(function(data) {
+    app.get("/api/all-players", function (req, res) {
+        db.Player.findAll({}).then(function (data) {
             res.json(data)
-            console.log(req.session.passport.user)
+            console.log(req.session)
         })
+    })
+
+    app.get("/api/new-pieces", function (req, res) {
+        db.Piece.findAll({
+            TileId: "undefinded"
+        }).then(function (data) {
+            res.json(data)
+        })
+    })
+
+    app.put("/api/piece-position", function (req, res) {
+        db.Piece.update({ TileId: req.body.tid }, {
+            where: {
+                id: req.body.ide
+            }
+        })
+    })
+
+    app.get("/api/find-tile", function (req, res) {
+        console.log("this is the body ", req.query.x, req.query.y)
+        db.Tile.findOne({
+            where: {
+                x: req.query.x,
+                y: req.query.y
+            }
+        }).then(function (data) {
+            console.log("Here's the data: ", data.dataValues.id)
+            db.Tile.update({ occupied: true }, {
+                where: {
+                    id: data.dataValues.id
+                }
+            })
+
+        }).then(function (data) {
+            res.json(data)
+        }).catch(function (err) {
+            console.log(err)
+        })
+    })
+
+    app.put("/api/update-piece/:id", function (req, res) {
+        console.log("this is the body: ", req.params.id, req.body.id)
+        db.Piece.update(
+            { TileId: req.body.id },
+            {
+                where: {
+                    id: req.params.id
+                }
+            }
+        ).then(function (data) {
+            res.json(data)
+        }).catch(function (err) {
+            console.log("Error: ", err)
+        })
+    })
+
+    app.get("/api/get-session", function(req, res) {
+        console.log("get session ", req.session)
+        console.log("get sessionID ", req.sessionID)
+        let sesh = req.session
+        res.json(sesh)
     })
 
 };

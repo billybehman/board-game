@@ -52,15 +52,27 @@ module.exports = function (sequelize, DataTypes) {
             type: DataTypes.STRING,
             allowNull: true
         },
+        owner: {
+            type: DataTypes.STRING,
+            allowNull: true
+        }
     })
 
-    // Piece.associate = function (models) {
-    //     Piece.belongsTo(models.Player, {
-    //         foreignKey: {
-    //             allowNull: true
-    //         }
-    //     });
-    // };
+    Piece.associate = function (models) {
+        Piece.belongsTo(models.Player, {
+            foreignKey: {
+                allowNull: true
+            }
+        });
+    };
+
+    Piece.associate = function (models) {
+        Piece.belongsTo(models.Tile, {
+            foreignKey: {
+                allowNull: true
+            }
+        });
+    };
 
     return Piece
 }

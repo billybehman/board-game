@@ -17,3 +17,8 @@
 .login {
     border: 4px black;
 }
+
+.image {
+    height: 80px;
+    width: 80px;
+}

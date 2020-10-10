@@ -36,5 +36,11 @@ module.exports = function (sequelize, DataTypes) {
 
     })
 
+    Tile.associate = function (models) {
+        Tile.hasOne(models.Piece, {
+            onDelete: "cascade"
+        })
+    }
+
     return Tile
 }

@@ -4,9 +4,11 @@ var pieces = []
 
 console.log("the app.js file")
 
+
+
 $(document).ready(function () {
 
-
+    $("#confirmPosition").hide()
 
     $("#createPiece").on("click", function (event) {
         event.preventDefault()
@@ -114,8 +116,6 @@ $(document).ready(function () {
             astrologyLvl: newPiece.astrology.level,
             shieldType: newPiece.shield.type,
             shieldLvl: newPiece.shield.level,
-            movementForward: newPiece.movement.forward,
-            movementDiagonal: newPiece.movement.diagonal,
             attackType: newPiece.attack.type,
             attackLvl: newPiece.attack.level,
             attackDistance: range,
@@ -123,16 +123,24 @@ $(document).ready(function () {
             knowledgeCollect: newPiece.gatherRes.knowledge
         }
 
+        if (newPiece.movement.forward !== "none") {
+            pieceForSQL.movementForward = newPiece.movement.forward
+        }
+
+        if (newPiece.movement.diagonal !== "none") {
+            pieceForSQL.movementForward = newPiece.movement.diagonal
+        }
+
         $.ajax({
             type: "POST",
             url: "/api/add-pieces",
             data: pieceForSQL
-        }).then(function (res) {
-            console.log(res)
+        }).then(function (data) {
+            console.log(data)
         })
 
 
-        window.location.replace("/board")
+        // window.location.replace("/board")
         //end of event listener for button
     })
 
@@ -185,7 +193,7 @@ $(document).ready(function () {
         }
     })
 
-    
+
     for (var i = 0; i < orderedYears.length; i++) {
         var yearsDiv = $("<div>")
         var thisYear = orderedYears[i]
@@ -221,9 +229,15 @@ $(document).ready(function () {
         console.log(spawnLocation)
     })
 
-    $("#createBoard").on("click", function() {
-        tilesDatabase()
+    $("#tryRes").on("click", function () {
+        myRes()
     })
+
+    $("#startTurn").on("click", function() {
+        startTurn()
+    })
+
+    session()
 
     //end of doc on ready function
 });
@@ -401,6 +415,190 @@ function piece(id, bodyComp, astrology, shield, movement, attack, gatherRes, cra
         this.craft = craft || "can not craft"
 }
 
+function dbToBoard(data) {
+    var xVal = data.x
+    var yVal = data.y
+    let id = data.id
+    var terrain = data.terrain
+    var res = data.resType || ""
+    var resQuantity = data.resAmount || ""
+    var div = $("<div>")
+    var resDiv = $("<div>")
+
+    resDiv.text(res + " " + resQuantity)
+
+    switch (res) {
+        case "Vision":
+            resDiv.css({ "background-color": "#ffbf00", "color": "Black" })
+            break;
+
+        case "Gold":
+            resDiv.css({ "background-color": "#ffbf00", "color": "Black" })
+            break;
+
+        case "Hydrogen":
+            resDiv.css({ "background-color": "#ffbf00", "color": "Black" })
+            break;
+
+        case "Starlight":
+            resDiv.css({ "background-color": "#ffbf00", "color": "Black" })
+            break;
+
+
+        case "Stamina":
+            resDiv.css({ "background-color": "#00ffcc", "color": "Black" })
+            break;
+
+        case "Accuracy":
+            resDiv.css({ "background-color": "#00ffcc", "color": "Black" })
+            break;
+
+        case "Coordination":
+            resDiv.css({ "background-color": "#00ffcc", "color": "Black" })
+            break;
+
+        case "Height":
+            resDiv.css({ "background-color": "#00ffcc", "color": "Black" })
+            break;
+
+        case "Reach":
+            resDiv.css({ "background-color": "#00ffcc", "color": "Black" })
+            break;
+
+        case "Force":
+            resDiv.css({ "background-color": "#00ffcc", "color": "Black" })
+            break;
+
+        case "Power":
+            resDiv.css("background-color", "#0066cc")
+            break;
+
+        case "Illumination":
+            resDiv.css("background-color", "#0066cc")
+            break;
+
+        case "Fang":
+            resDiv.css("background-color", "#0066cc")
+            break;
+
+        case "Copper":
+            resDiv.css("background-color", "#0066cc")
+            break;
+
+
+        case "Vibration":
+            resDiv.css("background-color", "#ff0066")
+            break;
+
+        case "Divinity":
+            resDiv.css("background-color", "#ff0066")
+            break;
+
+        case "Seed":
+            resDiv.css("background-color", "#ff0066")
+            break;
+
+        case "Lung":
+            resDiv.css("background-color", "#ff0066")
+            break;
+
+        case "Bone":
+            resDiv.css("background-color", "#ff0066")
+            break;
+
+        case "Blood":
+            resDiv.css("background-color", "#ff0066")
+            break;
+
+        case "Plastic":
+            resDiv.css("background-color", "#ff0066")
+            break;
+
+        case "Metal":
+            resDiv.css("background-color", "#ff0066")
+            break;
+
+
+        case "Craft":
+            resDiv.css("background-color", "Coral")
+            break;
+
+        case "Encryption":
+            resDiv.css("background-color", "Coral")
+            break;
+
+        case "Muscle":
+            resDiv.css({ "background-color": "White", "color": "Black" })
+            break;
+        case "Electric":
+            resDiv.css({ "background-color": "White", "color": "Black" })
+            break;
+
+        case "Salt":
+            resDiv.css({ "background-color": "White", "color": "Black" })
+            break;
+
+        case "Keratin":
+            resDiv.css({ "background-color": "White", "color": "Black" })
+            break;
+
+        case "Intelligence":
+            resDiv.css({ "background-color": "#a3a3c2", "color": "Black" })
+            break;
+
+        case "Knowledge":
+            resDiv.css({ "background-color": "#a3a3c2", "color": "Black" })
+            break;
+
+        default:
+            break;
+    }
+
+
+    switch (terrain) {
+        case "Sand":
+            div.css("background-color", "SandyBrown");
+            break;
+        case "Grass":
+            div.css("background-color", "LimeGreen");
+            break;
+        case "Water":
+            div.css("background-color", "DeepSkyBlue");
+            break;
+        case "Ice":
+            div.css("background-color", "AliceBlue");
+            break;
+        case "Chrome":
+            div.css({ "background-color": "#e4eee9", "background-image": "linear-gradient(315deg, #e4eee9 0%, #93a5ce 74%)" });
+            break;
+        case "Crystal":
+            div.css({ "background-color": "#96c8fb", "background-image": "linear-gradient(315deg, #96c8fb 0%, #ddbdfc 74%)" });
+            break;
+        case "Rock":
+            div.css("background-color", "DimGrey");
+            break;
+        case "Ethereal Space":
+            div.css({ "background-color": "Black", "color": "White" });
+            break;
+        case "Enchanted Glass":
+            div.css({ "background-color": "Indigo", "color": "white" });
+            break;
+        default:
+            break;
+    }
+
+    div.addClass("box")
+
+    div.text(xVal + ", " + yVal + " " + terrain)
+
+    div.attr("id", id)
+
+    $("#board").append(div)
+
+    div.append(resDiv)
+
+}
+
 function tilesDatabase() {
     for (var i = 0; i < tiles.length; i++) {
         var tileForDatabase = {
@@ -417,190 +615,132 @@ function tilesDatabase() {
             data: tileForDatabase
         }).then(function (data) {
             console.log("Dataaaa", data)
-
-            var xVal = data.x
-            var yVal = data.y
-            var terrain = data.terrain
-            var res = data.resType || ""
-            var resQuantity = data.resAmount || ""
-            var div = $("<div>")
-            var resDiv = $("<div>")
-
-            resDiv.text(res + " " + resQuantity)
-
-            switch (res) {
-                case "Vision":
-                    resDiv.css({ "background-color": "#ffbf00", "color": "Black" })
-                    break;
-
-                case "Gold":
-                    resDiv.css({ "background-color": "#ffbf00", "color": "Black" })
-                    break;
-
-                case "Hydrogen":
-                    resDiv.css({ "background-color": "#ffbf00", "color": "Black" })
-                    break;
-
-                case "Starlight":
-                    resDiv.css({ "background-color": "#ffbf00", "color": "Black" })
-                    break;
-
-
-                case "Stamina":
-                    resDiv.css({ "background-color": "#00ffcc", "color": "Black" })
-                    break;
-
-                case "Accuracy":
-                    resDiv.css({ "background-color": "#00ffcc", "color": "Black" })
-                    break;
-
-                case "Coordination":
-                    resDiv.css({ "background-color": "#00ffcc", "color": "Black" })
-                    break;
-
-                case "Height":
-                    resDiv.css({ "background-color": "#00ffcc", "color": "Black" })
-                    break;
-
-                case "Reach":
-                    resDiv.css({ "background-color": "#00ffcc", "color": "Black" })
-                    break;
-
-                case "Force":
-                    resDiv.css({ "background-color": "#00ffcc", "color": "Black" })
-                    break;
-
-                case "Power":
-                    resDiv.css("background-color", "#0066cc")
-                    break;
-
-                case "Illumination":
-                    resDiv.css("background-color", "#0066cc")
-                    break;
-
-                case "Fang":
-                    resDiv.css("background-color", "#0066cc")
-                    break;
-
-                case "Copper":
-                    resDiv.css("background-color", "#0066cc")
-                    break;
-
-
-                case "Vibration":
-                    resDiv.css("background-color", "#ff0066")
-                    break;
-
-                case "Divinity":
-                    resDiv.css("background-color", "#ff0066")
-                    break;
-
-                case "Seed":
-                    resDiv.css("background-color", "#ff0066")
-                    break;
-
-                case "Lung":
-                    resDiv.css("background-color", "#ff0066")
-                    break;
-
-                case "Bone":
-                    resDiv.css("background-color", "#ff0066")
-                    break;
-
-                case "Blood":
-                    resDiv.css("background-color", "#ff0066")
-                    break;
-
-                case "Plastic":
-                    resDiv.css("background-color", "#ff0066")
-                    break;
-
-                case "Metal":
-                    resDiv.css("background-color", "#ff0066")
-                    break;
-
-
-                case "Craft":
-                    resDiv.css("background-color", "Coral")
-                    break;
-
-                case "Encryption":
-                    resDiv.css("background-color", "Coral")
-                    break;
-
-                case "Muscle":
-                    resDiv.css({ "background-color": "White", "color": "Black" })
-                    break;
-                case "Electric":
-                    resDiv.css({ "background-color": "White", "color": "Black" })
-                    break;
-
-                case "Salt":
-                    resDiv.css({ "background-color": "White", "color": "Black" })
-                    break;
-
-                case "Keratin":
-                    resDiv.css({ "background-color": "White", "color": "Black" })
-                    break;
-
-                case "Intelligence":
-                    resDiv.css({ "background-color": "#a3a3c2", "color": "Black" })
-                    break;
-
-                case "Knowledge":
-                    resDiv.css({ "background-color": "#a3a3c2", "color": "Black" })
-                    break;
-
-                default:
-                    break;
-            }
-
-
-            switch (terrain) {
-                case "Sand":
-                    div.css("background-color", "SandyBrown");
-                    break;
-                case "Grass":
-                    div.css("background-color", "LimeGreen");
-                    break;
-                case "Water":
-                    div.css("background-color", "DeepSkyBlue");
-                    break;
-                case "Ice":
-                    div.css("background-color", "AliceBlue");
-                    break;
-                case "Chrome":
-                    div.css({ "background-color": "#e4eee9", "background-image": "linear-gradient(315deg, #e4eee9 0%, #93a5ce 74%)" });
-                    break;
-                case "Crystal":
-                    div.css({ "background-color": "#96c8fb", "background-image": "linear-gradient(315deg, #96c8fb 0%, #ddbdfc 74%)" });
-                    break;
-                case "Rock":
-                    div.css("background-color", "DimGrey");
-                    break;
-                case "Ethereal Space":
-                    div.css({ "background-color": "Black", "color": "White" });
-                    break;
-                case "Enchanted Glass":
-                    div.css({ "background-color": "Indigo", "color": "white" });
-                    break;
-                default:
-                    break;
-            }
-
-            div.addClass("box")
-
-            div.text(xVal + ", " + yVal + " " + terrain)
-
-            div.attr("id", xVal + "," + yVal)
-
-            $("#board").append(div)
-
-            div.append(resDiv)
-
+            dbToBoard(data)
         })
     }
 }
+
+function checkBoard() {
+    $.ajax({
+        type: "GET",
+        url: "/api/tiles"
+    }).then(function (data) {
+        if (data.length > 0) {
+            console.log(data)
+            for (let i = 0; i < data.length; i++) {
+                dbToBoard(data[i])
+            }
+        } else {
+            tilesDatabase()
+        }
+    })
+}
+
+function myRes() {
+    $.ajax({
+        type: "POST",
+        url: "/api/starting-res"
+    }).then(function (data) {
+        let dataAsArray = Object.entries(data)
+        console.log(dataAsArray)
+        for (let i = 0; i < dataAsArray.length; i++) {
+            let res = dataAsArray[i][0]
+            let resAmount = dataAsArray[i][1]
+            if (res !== "id" && res !== "PlayerId" && res !== "createdAt" && res !== "updatedAt") {
+                let div = $("<div>")
+                div.text(res + ": " + resAmount)
+                $("#playerRes").append(div)
+            }
+
+        }
+    })
+}
+
+function getNewPieces() {
+    $.ajax({
+        type: "GET",
+        url: "/api/new-pieces"
+    }).then(function (data) {
+        console.log("new Pieces ", data)
+        data.forEach(piece => {
+            let div = $("<div>")
+            div.text("New Piece: " + piece.id)
+            let button = $("<button>")
+            button.text("Activate")
+            button.addClass("activationBtns")
+            button.attr("id", piece.id)
+            div.append(button)
+            $("#newPieces").append(div)
+        });
+    }).then(function () {
+        $(".activationBtns").on("click", function () {
+            let ide = $(this).attr("id")
+            console.log(ide)
+            $(".box").on("click", function () {
+                $("#confirmPosition").off("click")
+                const tid = $(this).attr("id")
+
+                let idObj = {
+                    id: tid
+                }
+                console.log(idObj)
+                $("#confirmPosition").show()
+
+                $("#confirmPosition").on("click", function () {
+                    console.log(idObj)
+                    console.log(ide)
+                    $.ajax({
+                        type: "PUT",
+                        url: "/api/update-piece/" + ide,
+                        data: idObj
+                    }).then(function (data) {
+                        console.log(data[0])
+                        showPieces()
+                    })
+                })
+            })
+        })
+    })
+}
+
+function showPieces() {
+    $.ajax({
+        type: "GET",
+        url: "/api/pieces"
+    }).then(function(data) {
+        console.log(data)
+        data.forEach(piece => {
+            let tileIde = piece.TileId
+            let pieceImg = $("<img>")
+            let source = "../images/piece-for-game.png"
+            pieceImg.attr("src", source)
+            pieceImg.addClass("image")
+            $("#" + tileIde).append(pieceImg)
+        })
+    })
+}
+
+function startTurn() {
+    console.log("Start Turn")
+}
+
+function session() {
+    $.ajax({
+        type: "GET",
+        url: "/api/get-session"
+    }).then(function (data) {
+        console.log(data)
+    })
+}
+
+boardUrl = "/board"
+
+if (location.pathname === boardUrl) {
+    checkBoard()
+    getNewPieces()
+    showPieces()
+}
+
 
 
 

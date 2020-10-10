@@ -20,6 +20,8 @@ var app = express()
 
 var PORT = process.env.PORT || 8080;
 
+var maxAge = 1000 * 60 * 60;
+
 app.use(express.static("public"));
 // app.use(bodyParser.urlencoded({ extended: false }));
 app.use(express.urlencoded({ extended: true }));
@@ -30,42 +32,13 @@ app.use(session({
     secret: "secret-key",
     resave: false,
     saveUninitialized: false,
-    cookie: { secure: false }
-}))
-app.use(passport.initialize())
-app.use(passport.session())
-
-passport.use(new LocalStrategy(
-    // Our user will sign in using an email, rather than a "username"
-    {
-        usernameField: "name"
-    },
-    function (name, password, done) {
-        // When a user tries to sign in this code runs
-        db.Player.findOne({
-            where: {
-                name: name
-            }
-        }).then(function (dbPlayer) {
-            // If there's no Player with the given email
-            if (!dbPlayer) {
-                return done(null, false, {
-                    message: "Incorrect Playername."
-                });
-            }
-            // If none of the above, return the Player
-            return done(null, dbPlayer);
-        });
+    cookie: { 
+        secure: false,
+        expires: false,
+        maxAge: maxAge,
+        sameSite: "none"
     }
-));
-
-passport.serializeUser(function (Player, cb) {
-    cb(null, Player);
-});
-
-passport.deserializeUser(function (obj, cb) {
-    cb(null, obj);
-});
+}))
 
 
 
@@ -75,6 +48,8 @@ require("./routes/apiRoutes")(app);
 app.engine("handlebars", exphbs({ defaultLayout: "main" })
 );
 app.set("view engine", "handlebars");
+
+app.set('trust proxy', true)
 
 
 var syncOptions = { force: false };

@@ -1,30 +1,5 @@
 module.exports = function (sequelize, DataTypes) {
     var Resource = sequelize.define("Resource", {
-        vision: {
-            type: DataTypes.INTEGER,
-            allowNull: true,
-            defaultVaue: 0
-        },
-        stamina: {
-            type: DataTypes.INTEGER,
-            allowNull: true,
-            defaultVaue: 0
-        },
-        power: {
-            type: DataTypes.INTEGER,
-            allowNull: true,
-            defaultVaue: 0
-        },
-        vibration: {
-            type: DataTypes.INTEGER,
-            allowNull: true,
-            defaultVaue: 0
-        },
-        craft: {
-            type: DataTypes.INTEGER,
-            allowNull: true,
-            defaultVaue: 0
-        },
         accuracy: {
             type: DataTypes.INTEGER,
             allowNull: true,
@@ -66,11 +41,6 @@ module.exports = function (sequelize, DataTypes) {
             defaultValue: 0
         },
         divinity: {
-            type: DataTypes.INTEGER,
-            allowNull: true,
-            defaultValue: 0
-        },
-        seed: {
             type: DataTypes.INTEGER,
             allowNull: true,
             defaultValue: 0
@@ -150,15 +120,40 @@ module.exports = function (sequelize, DataTypes) {
             allowNull: true,
             defaultValue: 0
         },
+        vision: {
+            type: DataTypes.INTEGER,
+            allowNull: true,
+            defaultValue: 0
+        },
+        stamina: {
+            type: DataTypes.INTEGER,
+            allowNull: true,
+            defaultValue: 0
+        },
+        power: {
+            type: DataTypes.INTEGER,
+            allowNull: true,
+            defaultValue: 0
+        },
+        vibration: {
+            type: DataTypes.INTEGER,
+            allowNull: true,
+            defaultValue: 0
+        },
+        craft: {
+            type: DataTypes.INTEGER,
+            allowNull: true,
+            defaultValue: 0
+        }
     })
 
-    // Resource.associate = function (models) {
-    //     Resource.belongsTo(models.Player, {
-    //         foreignKey: {
-    //             allowNull: true
-    //         }
-    //     });
-    // };
+    Resource.associate = function (models) {
+        Resource.belongsTo(models.Player, {
+            foreignKey: {
+                allowNull: true
+            }
+        });
+    };
 
     return Resource
 }
