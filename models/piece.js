@@ -55,6 +55,15 @@ module.exports = function (sequelize, DataTypes) {
         owner: {
             type: DataTypes.STRING,
             allowNull: true
+        },
+        hitPoints: {
+            type: DataTypes.INTEGER,
+            allowNull: false,
+            default: 6
+        },
+        actionFinished: {
+            type: DataTypes.BOOLEAN,
+            default: false
         }
     })
 
@@ -63,15 +72,17 @@ module.exports = function (sequelize, DataTypes) {
             foreignKey: {
                 allowNull: true
             }
-        });
-    };
-
-    Piece.associate = function (models) {
+        })
         Piece.belongsTo(models.Tile, {
             foreignKey: {
                 allowNull: true
             }
-        });
+        })
+        Piece.belongsTo(models.Game, {
+            foreignKey: {
+                allowNull: true
+            }
+        })
     };
 
     return Piece

@@ -6,16 +6,27 @@ module.exports = function (sequelize, DataTypes) {
             validate: {
                 len: [1]
             }
+        },
+        turnOrder: {
+            type: DataTypes.INTEGER,
+            allowNull: true
+        },
+        focusRemaining: {
+            type: DataTypes.INTEGER,
+            allowNull: false,
+            default: 8
         }
     })
 
     Player.associate = function (models) {
+        Player.belongsTo(models.Game, {
+            foreignKey: {
+                allowNull: true
+            }
+        })
         Player.hasMany(models.Piece, {
             onDelete: "cascade"
         })
-    }
-
-    Player.associate = function (models) {
         Player.hasMany(models.Resource, {
             onDelete: "cascade"
         })

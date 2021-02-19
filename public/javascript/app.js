@@ -194,16 +194,16 @@ $(document).ready(function () {
     })
 
 
-    for (var i = 0; i < orderedYears.length; i++) {
-        var yearsDiv = $("<div>")
-        var thisYear = orderedYears[i]
-        yearsDiv.text(thisYear)
-        if (thisYear === currentYear) {
-            yearsDiv.css({ "background-color": "black", "color": "white" })
-        }
-        $("#year").append(yearsDiv)
+    // for (var i = 0; i < orderedYears.length; i++) {
+    //     var yearsDiv = $("<div>")
+    //     var thisYear = orderedYears[i]
+    //     yearsDiv.text(thisYear)
+    //     if (thisYear === currentYear) {
+    //         yearsDiv.css({ "background-color": "black", "color": "white" })
+    //     }
+    //     $("#year").append(yearsDiv)
 
-    }
+    // }
 
     $("#spawnPortalConfirm").hide()
 
@@ -233,40 +233,52 @@ $(document).ready(function () {
         myRes()
     })
 
-    $("#startTurn").on("click", function() {
+    $("#startTurn").on("click", function () {
         startTurn()
     })
 
-    session()
+    $("#pieceAction").on("click", function () {
+        pieceAction()
+    })
+
+    $("#attackPiece").on("click", function () {
+        attack()
+    })
+
+    $("#gameOptions").hide()
+
+    $("#createGame").on("click", function () {
+        $("#gameOptions").show()
+    })
+
+    $("#start").on("click", function () {
+        let numberOfPlayers = $("#numberOfPlayers").val()
+        let name = $("#gameName").val()
+        createGame(numberOfPlayers, name)
+    })
+
+    $("#findGame").on("click", function () {
+        getGames()
+    })
+
+    $("#moveSimulator").on("click", function () {
+        move()
+    })
+
+    $("#testPiece").on("click", function () {
+        testPiece()
+    })
+
+    $("#endTurn").on("click", function () {
+        endTurn()
+    })
 
     //end of doc on ready function
 });
 
 var spawnLocation = ""
 
-var allYears = ["Year of the Bird", "Year of the Elephant", "Year of the Cat", "Year of the Dragon", "Year of the Frog"]
 
-var orderedYears = []
-
-function year() {
-    var numOfYears = allYears.length
-    var ranYear = Math.floor(Math.random() * numOfYears)
-    var year = allYears[ranYear]
-    orderedYears.push(year)
-    var newYearsArr = allYears.filter(theYear => theYear != year)
-    allYears = newYearsArr
-}
-
-var p = 0
-
-while (p < 5) {
-    year()
-    p++
-}
-
-console.log(orderedYears)
-
-var currentYear = orderedYears[0]
 
 var tiles = []
 
@@ -599,14 +611,15 @@ function dbToBoard(data) {
 
 }
 
-function tilesDatabase() {
+function tilesDatabase(session) {
     for (var i = 0; i < tiles.length; i++) {
         var tileForDatabase = {
             x: tiles[i].number.x,
             y: tiles[i].number.y,
             resType: tiles[i].res.type || "",
             resAmount: tiles[i].res.quantity || "",
-            terrain: tiles[i].terrain
+            terrain: tiles[i].terrain,
+            GameId: session.game
         }
 
         $.ajax({
@@ -620,10 +633,15 @@ function tilesDatabase() {
     }
 }
 
-function checkBoard() {
+function checkBoard(session) {
+    let gameObj = {
+        gameId: session.game
+    }
+
     $.ajax({
         type: "GET",
-        url: "/api/tiles"
+        url: "/api/tiles",
+        data: gameObj
     }).then(function (data) {
         if (data.length > 0) {
             console.log(data)
@@ -631,16 +649,17 @@ function checkBoard() {
                 dbToBoard(data[i])
             }
         } else {
-            tilesDatabase()
+            tilesDatabase(session)
         }
+        showPieces()
     })
 }
 
+
+
 function myRes() {
-    $.ajax({
-        type: "POST",
-        url: "/api/starting-res"
-    }).then(function (data) {
+
+    function displayRes(data) {
         let dataAsArray = Object.entries(data)
         console.log(dataAsArray)
         for (let i = 0; i < dataAsArray.length; i++) {
@@ -649,11 +668,27 @@ function myRes() {
             if (res !== "id" && res !== "PlayerId" && res !== "createdAt" && res !== "updatedAt") {
                 let div = $("<div>")
                 div.text(res + ": " + resAmount)
+                div.attr("id", res)
                 $("#playerRes").append(div)
             }
+        }
+    }
 
+
+    $.ajax({
+        type: "GET",
+        url: "/api/get-res"
+    }).then(function (data) {
+        if (data) {
+            displayRes(data)
+        } else {
+            $.ajax({
+                type: "POST",
+                url: "/api/starting-res"
+            }).then(displayRes)
         }
     })
+
 }
 
 function getNewPieces() {
@@ -661,6 +696,7 @@ function getNewPieces() {
         type: "GET",
         url: "/api/new-pieces"
     }).then(function (data) {
+        $("#newPieces").empty()
         console.log("new Pieces ", data)
         data.forEach(piece => {
             let div = $("<div>")
@@ -696,6 +732,7 @@ function getNewPieces() {
                     }).then(function (data) {
                         console.log(data[0])
                         showPieces()
+                        getNewPieces()
                     })
                 })
             })
@@ -704,27 +741,187 @@ function getNewPieces() {
 }
 
 function showPieces() {
+    console.log("Is this running?")
     $.ajax({
         type: "GET",
         url: "/api/pieces"
-    }).then(function(data) {
-        console.log(data)
+    }).then(function (data) {
+        console.log("Show Pieces Data ", data)
         data.forEach(piece => {
             let tileIde = piece.TileId
             let pieceImg = $("<img>")
             let source = "../images/piece-for-game.png"
             pieceImg.attr("src", source)
-            pieceImg.addClass("image")
+            pieceImg.addClass("pieceImage")
+            pieceImg.attr("id", piece.id)
+            pieceImg.data("owner", piece.owner)
             $("#" + tileIde).append(pieceImg)
         })
     })
 }
 
-function startTurn() {
-    console.log("Start Turn")
+
+function pieceAction() {
+
+    function transferRes(object) {
+        $.ajax({
+            type: "PUT",
+            url: "/api/res-transfer",
+            data: object
+        }).then(function (data) {
+            console.log(data)
+            window.location.reload()
+        })
+    }
+
+
+    let user = ""
+    $.ajax({
+        type: "GET",
+        url: "/api/get-session"
+    }).then(function(data) {
+        $(".pieceImage").off()
+        $(".pieceImage").on("click", function () {
+            let id = $(this).attr("id")
+            console.log("piece ID: " + id)
+            let owner = $(this).data("owner")
+            console.log(owner)
+        })
+    })
+    
+    
+//     .then(function (data) {
+//         user = data.name
+//         return $.ajax({
+//             type: "GET",
+//             url: "/api/pieces"
+//         })
+//     }).then(function (data) {
+//         console.log("Piece Action: ", data)
+//         data.forEach(piece => {
+//             console.log("piece: ", piece)
+//             if (piece.owner === user) {
+//                 let pieceKno = piece.knowledgeCollect
+//                 let pieceInt = piece.intelligenceCollect
+//                 let changeAmount = 1
+//                 let resId = piece.Player.Resources[0].id
+//                 let resType = piece.Tile.resType.toLowerCase()
+//                 let newTileRes = parseInt(piece.Tile.resAmount) - changeAmount
+//                 let newPlayerRes = piece.Player.Resources[0][resType] + changeAmount
+//                 let TileId = piece.TileId
+//                 console.log({
+//                     resId,
+//                     resType,
+//                     newTileRes,
+//                     newPlayerRes,
+//                     TileId
+//                 })
+//                 console.log(piece)
+//                 console.log(piece.Tile.resAmount, typeof piece.Tile.resAmount)
+//                 let transferObj = {
+//                     resId,
+//                     resType,
+//                     newTileRes,
+//                     newPlayerRes,
+//                     TileId
+//                 }
+
+
+//                 switch (resType) {
+//                     case "copper":
+//                     case "plastic":
+//                     case "lung":
+//                     case "muscle":
+//                     case "vision":
+//                     case "bone":
+//                     case "blood":
+//                     case "salt":
+//                     case "keratin":
+//                     case "spike":
+//                     case "stamina":
+//                     case "hydrogen":
+//                     case "gold":
+//                         if (pieceKno) {
+//                             transferRes(transferObj)
+//                         }
+//                         break;
+
+//                     default:
+//                         break;
+//                 }
+
+
+//             }
+//         })
+//     })
+// }
+
+
+
+function attack() {
+
+    let attacker = 0
+
+    $.ajax({
+        type: "GET",
+        url: "/api/get-session"
+    }).then(function (data) {
+        console.log(data)
+        $(".pieceImage").on("click", function () {
+            let id = $(this).attr("id")
+            console.log("piece ID: " + id)
+            let owner = $(this).data("owner")
+            console.log(owner)
+            if (!attacker) {
+                if (owner === data.name) {
+                    $(".pieceImage").css("border", "none")
+                    $(this).css("border", "thick solid red")
+                    attacker = id
+                } else {
+                    alert("Not your piece")
+                }
+            } else {
+                if (owner !== data.name) {
+                    $(".pieceImage").css("border", "none")
+                    $(this).css("border", "thick solid green")
+                    $.ajax({
+                        type: "PUT",
+                        url: "/api/attack",
+                        data: {
+                            attacker: attacker,
+                            defender: id
+                        }
+                    }).then(function (data) {
+                        console.log(data)
+                        if (data.wrongTurn) {
+                            alert("NOT YOUR TURN")
+                        } else {
+                            showPieces()
+                        }
+                    })
+                } else {
+                    alert("This is your piece")
+                }
+            }
+
+
+        })
+    })
 }
 
-function session() {
+
+function endTurn() {
+    $.ajax({
+        type: "PUT",
+        url: "/api/end-turn"
+    }).then(function(data) {
+        console.log(data)
+    })
+}
+
+
+function startTurn() {
+    console.log("Start Turn")
     $.ajax({
         type: "GET",
         url: "/api/get-session"
@@ -733,27 +930,147 @@ function session() {
     })
 }
 
-boardUrl = "/board"
+function session() {
+    $.ajax({
+        type: "GET",
+        url: "/api/get-session"
+    }).then(function (data) {
+        console.log(data)
+        checkBoard(data)
+    })
+}
 
-if (location.pathname === boardUrl) {
-    checkBoard()
-    getNewPieces()
-    showPieces()
+function createGame(numberOfPlayers, game) {
+
+    var allYears = ["Year of the Bird", "Year of the Elephant", "Year of the Cat", "Year of the Dragon", "Year of the Frog"]
+
+    var orderedYears = []
+
+    function year() {
+        var numOfYears = allYears.length
+        var ranYear = Math.floor(Math.random() * numOfYears)
+        var year = allYears[ranYear]
+        orderedYears.push(year)
+        var newYearsArr = allYears.filter(theYear => theYear != year)
+        allYears = newYearsArr
+    }
+
+    var p = 0
+
+    while (p < 5) {
+        year()
+        p++
+    }
+
+    let currentYear = orderedYears[0]
+
+    $.ajax({
+        type: "POST",
+        url: "/api/create-game",
+        data: {
+            currentYear: currentYear,
+            yearOne: orderedYears[0],
+            yearTwo: orderedYears[1],
+            yearThree: orderedYears[2],
+            yearFour: orderedYears[3],
+            yearFive: orderedYears[4],
+            name: game,
+            numberOfPlayers: numberOfPlayers
+        }
+    }).then(function (data) {
+        console.log(data)
+        window.location.replace("/?id=" + data.id)
+    })
+
+}
+
+function getGames() {
+    $.ajax({
+        type: "GET",
+        url: "/api/get-games"
+    }).then(function (data) {
+        console.log(data)
+        data.map(game => {
+            let div = $("<div>")
+            let name = game.name
+            let numberOfPlayers = game.numberOfPlayers
+            let join = $("<button>")
+            join.text("Join")
+            join.addClass("join")
+            div.text(name + "\n" + "Number Of  Players: " + numberOfPlayers)
+            join.attr("id", game.id)
+            div.append(join)
+            $("#games").append(div)
+        })
+        $(".join").on("click", function () {
+            let id = this.id
+            window.location.replace("/?id=" + id)
+        })
+    })
+}
+
+
+function testPiece() {
+
+    console.log("test piece")
+
+    $.ajax({
+        type: "POST",
+        url: "/api/add-test-piece"
+    }).then(function (data) {
+        console.log(data)
+    })
 }
 
 
 
+//need a function that runs every time a move is made to see if that is the maximum number of moves allowed during that turn
 
 
-//need to ask the player what spawn portal they want to place their piece at or what tile next to the spawn portal they want to spawn at
-//need to keep track of and display the player's resources
-//the function should read everything at the end of the turn
-//When the turn ends, the function should either go through all the pieces or all the tiles
-//the function will take in all the information and compare it to all the information about the tile that it's on and what year it is and then there will be a bunch of if statements saying what happens with the piece
-//there also needs to be an attack button that, when pressed, indicates that the next click will be to attack a piece, then the information that the piece is attacking another piece is stored somewhere and when the turn ends then the function reads that and does the stuff
+
+
+
+
+//this function has to check to see if the player has made all of their moves, not really a function to see if the player has made all of their moves, more just a function to see who's turn it is
+//if they have made all their moves, then it has to update the database to say that it's the next person's turn
+//probably update the UI as well
+function hasMoved() {
+    $.ajax({
+        type: "GET",
+        url: "/api/turn-check"
+    }).then(function (data) {
+        console.log("Moved Function\n", data)
+    })
+}
+
+let checkMoves
+
+// function determineTurn() {
+//     checkMoves = setInterval(hasMoved, 3000)
+// }
+
+
+
+boardUrl = "/board"
+
+if (location.pathname === boardUrl) {
+    // determineTurn()
+    session()
+    getNewPieces()
+    myRes()
+} else if (location.pathname === "/") {
+    console.log("player page")
+}
+
+
+
+//make it so players can only create pieces they have the resources for
+
+//make turns actually happen
+
+//make it so that the year changes every three turns
+
+
+
+
 //should have a div that tells the player everything that's going on, like, this piece is on chrome and is a spirit body so it's attack is lower
-
-//back end:
-//create a sequelize model for tiles, pieces, players, years?, res probably, and whatever else I run into
-
-//can you have multiple of one column in sequelize?

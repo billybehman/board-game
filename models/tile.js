@@ -40,6 +40,11 @@ module.exports = function (sequelize, DataTypes) {
         Tile.hasOne(models.Piece, {
             onDelete: "cascade"
         })
+        Tile.belongsTo(models.Game, {
+            foreignKey: {
+                allowNull: true
+            }
+        })
     }
 
     return Tile

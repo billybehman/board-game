@@ -18,7 +18,11 @@
     border: 4px black;
 }
 
-.image {
+.pieceImage {
     height: 80px;
     width: 80px;
+}
+
+#attackPiece {
+    display: inline-block !important;
 }

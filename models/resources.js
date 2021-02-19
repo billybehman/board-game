@@ -144,6 +144,10 @@ module.exports = function (sequelize, DataTypes) {
             type: DataTypes.INTEGER,
             allowNull: true,
             defaultValue: 0
+        },
+        playerName: {
+            type: DataTypes.STRING,
+            allowNull: true
         }
     })
 
@@ -152,7 +156,12 @@ module.exports = function (sequelize, DataTypes) {
             foreignKey: {
                 allowNull: true
             }
-        });
+        })
+        Resource.belongsTo(models.Game, {
+            foreignKey: {
+                allowNull: true
+            }
+        })
     };
 
     return Resource

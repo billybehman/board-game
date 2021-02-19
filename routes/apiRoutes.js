@@ -36,24 +36,53 @@ module.exports = function (app) {
             attackDistance: attackDistance,
             intelligenceCollect: intelligenceCollect,
             knowledgeCollect: knowledgeCollect,
-            PlayerId: req.session.playerId
+            hitPoints: 6,
+            PlayerId: req.session.playerId,
+            owner: req.session.name
         }).then(function (data) {
             console.log(data)
             res.json(data)
         })
     })
 
+    app.post("/api/add-test-piece", function (req, res) {
+        db.Piece.create({
+            bodyCompType: "Spirit",
+            bodyCompLvl: 1,
+            astrologyType: "Yellow-Moon",
+            astrologyLvl: 1,
+            shieldType: "skin",
+            shieldLvl: 1,
+            movementForward: 1,
+            movementDiagonal: 1,
+            attackType: "spiked",
+            attackLvl: 1,
+            attackDistance: "1TileForward",
+            intelligenceCollect: 1,
+            knowledgeCollect: 1,
+            hitPoints: 6,
+            PlayerId: req.session.playerId,
+            owner: req.session.name
+        }).then(function (data) {
+            res.json(data)
+        })
+    })
+
     app.get("/api/pieces", function (req, res) {
-        db.Piece.findAll({}).then(function (data) {
+        db.Piece.findAll({
+            include: [{ model: db.Player, include: db.Resource }, db.Tile]
+        }).then(function (data) {
             res.json(data)
         })
     })
 
     app.post("/api/starting-res", function (req, res) {
-        let foreignKey = req.session.playerId
-        console.log("player id is: " + foreignKey)
+        let foreignKey = req.session.name
+        let playerId = req.session.playerId
+        console.log("player id is: " + foreignKey + " " + playerId)
         db.Resource.create({
-            PlayerId: foreignKey
+            playerName: foreignKey,
+            PlayerId: playerId
         }).then(function (data) {
             console.log(data)
             res.json(data)
@@ -67,42 +96,103 @@ module.exports = function (app) {
             resType: req.body.resType,
             resAmount: req.body.resAmount,
             terrain: req.body.terrain,
+            GameId: req.body.GameId
         }).then(function (data) {
             res.json(data)
         })
     })
 
     app.get("/api/tiles", function (req, res) {
-        db.Tile.findAll({}).then(function (data) {
+        console.log("tiles data: ", req.query)
+        db.Tile.findAll({
+            where: {
+                GameId: req.query.gameId
+            }
+        }).then(function (data) {
             res.json(data)
         })
     })
 
-    app.get("/api/players/:name", function (req, res) {
-        db.Player.findAll({
+    app.get("/api/find-player", function (req, res) {
+        console.log("The Find Player Request Data\n\n\n", req.query)
+        let GameId = req.query.GameId
+        db.Player.findOne({
             where: {
-                name: req.params.name
+                name: req.query.name,
+                GameId: GameId
             }
         }).then(function (data) {
-            req.session.name = data[0].name
-            req.session.playerId = data[0].id
+            req.session.name = data.dataValues.name
+            req.session.playerId = data.dataValues.id
+            req.session.game = GameId
             console.log("new data: ", data)
             console.log("api route, " + req.sessionID)
             res.json(data)
         })
     });
 
-    app.post("/api/add-player", function (req, res) {
+    app.post("/api/add-player", async function (req, res) {
+        const { dataValues } = await db.Game.findOne({
+            where: {
+                id: req.body.GameId
+            },
+            include: [db.Player]
+        })
+        console.log("This is the game data from the add player request\n\n\n", dataValues)
+        let numberOfPlayers = dataValues.numberOfPlayers
+        let turnOrder = dataValues.Players.length + 1
         let thePlayer = req.body.name
         console.log("The player is " + thePlayer)
-        db.Player.create({
-            name: thePlayer
+
+        if (turnOrder > numberOfPlayers) {
+            let data = { dataValues, full: true }
+            res.json(data)
+            return
+        }
+
+        const playerData = await db.Player.create({ ...req.body, turnOrder })
+        console.log("Here's the player data ", playerData)
+        req.session.name = playerData.dataValues.name
+        req.session.playerId = playerData.dataValues.id
+        req.session.game = playerData.dataValues.GameId
+
+        if (turnOrder === numberOfPlayers) {
+
+            const gameData = await db.Game.update(
+                {
+                    playersSoFar: turnOrder,
+                    currentTurn: 1
+                }, {
+                where: {
+                    id: req.body.GameId
+                }
+            })
+
+            let data = { playerData, gameData }
+            res.json(data)
+        } else if (turnOrder < numberOfPlayers) {
+
+            const gameData = await db.Game.update({ playersSoFar: turnOrder }, {
+                where: {
+                    id: req.body.GameId
+                }
+            })
+
+            let data = { playerData, gameData }
+            res.json(data)
+        }
+
+    })
+
+    app.get("/api/turn-check", function (req, res) {
+        db.Game.findOne({
+            where: {
+                id: req.session.game
+            }
         }).then(function (data) {
-            console.log("Here's the data ", data)
-            req.session.name = data.dataValues.name
-            req.session.playerId = data.dataValues.id
             res.json(data)
         })
+
     })
 
     app.get("/api/all-players", function (req, res) {
@@ -114,7 +204,9 @@ module.exports = function (app) {
 
     app.get("/api/new-pieces", function (req, res) {
         db.Piece.findAll({
-            TileId: "undefinded"
+            where: {
+                TileId: null
+            }
         }).then(function (data) {
             res.json(data)
         })
@@ -166,11 +258,202 @@ module.exports = function (app) {
         })
     })
 
-    app.get("/api/get-session", function(req, res) {
+    app.get("/api/get-session", function (req, res) {
         console.log("get session ", req.session)
         console.log("get sessionID ", req.sessionID)
         let sesh = req.session
         res.json(sesh)
+    })
+
+    app.put("/api/res-transfer", function (req, res) {
+        console.log("transfer data: ", req.body)
+        let resType = req.body.resType
+        db.Resource.update(
+            { [resType]: req.body.newPlayerRes },
+            {
+                where: {
+                    id: req.body.resId
+                }
+            })
+        db.Tile.update(
+            { resAmount: req.body.newTileRes },
+            {
+                where: {
+                    id: req.body.TileId
+                }
+            }
+        ).then(function (data) {
+            res.json(data)
+        })
+    })
+
+
+
+
+    //first have to get the what the current focus is and then I can update it by subracting 2
+
+
+
+    app.put("/api/attack", async function (req, res) {
+        console.log("This is the attack data: ", req.body)
+        //this request also needs to update the player model of the attacker, 
+        const pieceData = await db.Piece.findAll({
+            where: {
+                [Op.or]: [
+                    { id: req.body.attacker },
+                    { id: req.body.defender }
+                ]
+            }
+        })
+
+        try {
+
+            let playerData = await db.Player.findOne({
+                where: {
+                    id: req.session.playerId
+                },
+                include: [db.Game]
+            })
+
+            console.log("This is the Player Data:\n\n\n", playerData)
+
+            let currentTurn = playerData.Game.dataValues.currentTurn
+
+            let numberOfPlayers = playerData.Game.dataValues.numberOfPlayers
+
+            console.log("The current game turn:\n\n\n" + currentTurn + "\n\n\n")
+
+            console.log("This is the more exact player data:\n\n\n", playerData.dataValues, "\n\n\n")
+
+            if (currentTurn % numberOfPlayers === playerData.dataValues.turnOrder) {
+
+                let oldFocus = playerData.dataValues.focusRemaining
+                let newFocus = oldFocus - 2
+                playerData = await db.Player.update(
+                    { focusRemaining: newFocus },
+                    {
+                        where: {
+                            id: req.session.playerId
+                        }
+                    }
+                )
+
+                console.log("PieceId:\n\n\n", pieceData[0].id, "\n\n\n", "Attacker:\n\n\n", req.body.attacker)
+                let attacker, defender
+                if (pieceData[0].id == req.body.attacker) {
+                    attacker = pieceData[0]
+                    defender = pieceData[1]
+                } else {
+                    attacker = pieceData[1]
+                    defender = pieceData[0]
+                }
+                let startingHitPoints = defender.dataValues.hitPoints
+                let attackerDamage = attacker.dataValues.attackLvl
+                let shield = defender.dataValues.shieldLvl
+                let netDamage = attackerDamage - shield + 3
+                let finalHitPoints = startingHitPoints - netDamage
+                console.log("here's the damage\n\n\n", { netDamage, finalHitPoints, startingHitPoints, attacker, defender })
+                if (finalHitPoints <= 0) {
+                    db.Piece.destroy(
+                        {
+                            where: {
+                                id: req.body.defender
+                            }
+                        }
+                    ).then(function (data) {
+                        let totalData = { playerData, data }
+                        res.json(totalData)
+                    })
+                } else {
+                    db.Piece.update(
+                        { hitPoints: finalHitPoints },
+                        {
+                            where: {
+                                id: req.body.defender
+                            }
+                        }
+                    ).then(function (data) {
+                        let totalData = { playerData, data }
+                        res.json(totalData)
+                    })
+                }
+            } else {
+                let data = {
+                    playerData,
+                    wrongTurn: true
+                }
+                res.json(data)
+            }
+
+
+
+        }
+        catch (err) {
+            console.log(err)
+        }
+
+    })
+
+
+    app.put("/api/end-turn", async function (req, res) {
+
+        //find the game
+        //update the currentTurn of the game to be +1 or 1 if the number of players in the game = the currentTurn
+        
+        const gameData = await db.Game.findOne({
+            where: {
+                id: req.session.game
+            }
+        })
+
+        console.log("\n\nHere's the game data:\n\n\n", gameData, "\n\n\n")
+
+        let previousTurn = gameData.dataValues.currentTurn
+
+        let newTurn = previousTurn + 1
+
+
+        db.Game.update({currentTurn: newTurn}, {
+            where: {
+                id: req.session.game
+            }
+        }).then(function(data) {
+            res.json(data)
+        })
+    })
+
+
+    app.get("/api/get-res", function (req, res) {
+        db.Resource.findOne({
+            where: {
+                PlayerId: req.session.playerId
+            }
+        }).then(function (data) {
+            res.json(data)
+        })
+    })
+
+    app.post("/api/create-game", function (req, res) {
+        console.log("Game Options: ", req.body)
+        db.Game.create({
+            currentYear: req.body.currentYear,
+            yearOne: req.body.yearOne,
+            yearTwo: req.body.yearTwo,
+            yearThree: req.body.yearThree,
+            yearFour: req.body.yearFour,
+            yearFive: req.body.yearFive,
+            name: req.body.name,
+            numberOfPlayers: req.body.numberOfPlayers
+        }).then(function (data) {
+            req.session.game = data.dataValues.id
+            res.json(data)
+        })
+    })
+
+    app.get("/api/get-games", function (req, res) {
+        db.Game.findAll({}).then(function (data) {
+            res.json(data)
+        })
     })
 
 };

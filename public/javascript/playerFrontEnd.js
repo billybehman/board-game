@@ -1,10 +1,18 @@
 $("#playerFindSubmit").on("click", function() {
     let name = $("#playerNameInput").val().trim()
+    let GameId = location.search.split("=")[1]
+
+    let dataObj = {
+        name,
+        GameId
+    }
+
+    console.log(dataObj)
 
     $.ajax({
         type: "GET",
-        dataType: "JSON",
-        url: "/api/players/" + name,
+        url: "/api/find-player",
+        data: dataObj
     }).then(function(data) {
         console.log(data)
         location.replace("/board")
@@ -14,19 +22,25 @@ $("#playerFindSubmit").on("click", function() {
 $("#playerCreateSubmit").on("click", function() {
     console.log("submit name")
 
-    let name = {
-        name: $("#playerCreateInput").val().trim()
+    let playerObj = {
+        name: $("#playerCreateInput").val().trim(),
+        GameId: location.search.split("=")[1],
+        focusRemaining: 8
     }
 
-    console.log(name)
+    console.log(playerObj)
 
     $.ajax({
         type: "POST",
         url: "/api/add-player",
-        data: name
+        data: playerObj
     }).then(function(data) {
         console.log(data)
-        location.replace("/board")
+        if (data.full) {
+            alert("THE GAME IS FULL")
+        } else {
+            location.replace("/board")
+        }
     })
 })
 

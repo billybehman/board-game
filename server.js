@@ -30,14 +30,8 @@ app.use(express.json());
 app.use(cookieParser());
 app.use(session({
     secret: "secret-key",
-    resave: false,
-    saveUninitialized: false,
-    cookie: { 
-        secure: false,
-        expires: false,
-        maxAge: maxAge,
-        sameSite: "none"
-    }
+    resave: true,
+    saveUninitialized: true
 }))
 
 
