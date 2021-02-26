@@ -278,112 +278,110 @@ $(document).ready(function () {
 
 var spawnLocation = ""
 
+function tiles() {
 
+    var tiles = []
 
-var tiles = []
+    var a = 5
 
-var terrainObjArray = []
+    while (a > -5) {
 
+        var i = -5
 
-var a = 5
+        while (i < 5) {
 
-while (a > -5) {
+            var tileNumber = {
+                x: i,
+                y: a,
+                z: 0
+            }
 
-    var i = -5
+            var newTile = new tileNum(tileNumber)
 
-    while (i < 5) {
+            tiles.push(newTile)
 
-        var tileNumber = {
-            x: i,
-            y: a,
-            z: 0
+            i++
         }
 
-        var newTile = new tileNum(tileNumber)
-
-        tiles.push(newTile)
-
-        i++
+        a--
     }
+    
 
-    a--
-}
+    var allTerrains = ["Sand", "Rock", "Water", "Ice", "Ethereal Space", "Enchanted Glass", "Grass", "Chrome", "Crystal"]
 
-var chosenTerrains = []
+    var n = 0
+    var extra = 0
 
-var allTerrains = ["Sand", "Rock", "Water", "Ice", "Ethereal Space", "Enchanted Glass", "Grass", "Chrome", "Crystal"]
+    var firstX = 0
 
-var n = 0
-var extra = 0
+    var firstY = 0
 
-var firstX = 0
+    var firstTerrain = ""
 
-var firstY = 0
+    var number = 0
 
-var firstTerrain = ""
+    var numOfTiles = tiles.length
 
-var number = 0
+    var q = 0
 
-var numOfTiles = tiles.length
+    function createTer() {
+        //if statement to check if there are any tiles left without a terrain
+        var firstTileTry = tiles[Math.floor(Math.random() * numOfTiles)]
+        if (firstTileTry.terrain === "none" && q < 100) {
+            firstX = firstTileTry.number.x
+            firstY = firstTileTry.number.y
+            n = 0
+            extra = 0
+            var numOfTerrains = allTerrains.length
+            var firstTerrainNum = Math.floor(Math.random() * numOfTerrains)
+            firstTerrain = allTerrains[firstTerrainNum]
+            console.log(firstTerrain)
+            var newTerrainsArr = allTerrains.filter(terrain => terrain != firstTerrain);
+            allTerrains = newTerrainsArr
+            console.log(allTerrains)
 
-var q = 0
+            number = Math.floor(Math.random() * 6) + 12
 
-function createTer() {
-    //if statement to check if there are any tiles left without a terrain
-    var firstTileTry = tiles[Math.floor(Math.random() * numOfTiles)]
-    if (firstTileTry.terrain === "none" && q < 100) {
-        firstX = firstTileTry.number.x
-        firstY = firstTileTry.number.y
-        n = 0
-        extra = 0
-        var numOfTerrains = allTerrains.length
-        var firstTerrainNum = Math.floor(Math.random() * numOfTerrains)
-        firstTerrain = allTerrains[firstTerrainNum]
-        console.log(firstTerrain)
-        var newTerrainsArr = allTerrains.filter(terrain => terrain != firstTerrain);
-        allTerrains = newTerrainsArr
-        console.log(allTerrains)
+            keepLooking()
 
-        number = Math.floor(Math.random() * 6) + 12
-
-        keepLooking()
-
-    } else if (q > 99) {
-        console.log("finished generating tiles")
-    } else {
-        createTer()
-    }
-    //end of if statement to check if there are any tiles left without terrain
-}
-
-
-function keepLooking() {
-    for (var i = 0; i < tiles.length; i++) {
-        var realTileX = tiles[i].number.x
-        var realTileY = tiles[i].number.y
-        var realTerrain = tiles[i].terrain
-        var differenceX = Math.abs(realTileX - firstX)
-        var differenceY = Math.abs(realTileY - firstY)
-        var ranDifX = Math.floor(Math.random() * 2) + 2 + extra;
-        var ranDifY = Math.floor(Math.random() * 2) + 2 + extra;
-        if (realTerrain === "none" && differenceX < ranDifX && differenceY < ranDifY) {
-            tiles[i].terrain = firstTerrain
-            n++
-            q++
+        } else if (q > 99) {
+            console.log("finished generating tiles")
+        } else {
+            createTer()
         }
-        if (q > 99) {
-            n = n + 20
+        //end of if statement to check if there are any tiles left without terrain
+    }
+
+
+    function keepLooking() {
+        for (var i = 0; i < tiles.length; i++) {
+            var realTileX = tiles[i].number.x
+            var realTileY = tiles[i].number.y
+            var realTerrain = tiles[i].terrain
+            var differenceX = Math.abs(realTileX - firstX)
+            var differenceY = Math.abs(realTileY - firstY)
+            var ranDifX = Math.floor(Math.random() * 2) + 2 + extra;
+            var ranDifY = Math.floor(Math.random() * 2) + 2 + extra;
+            if (realTerrain === "none" && differenceX < ranDifX && differenceY < ranDifY) {
+                tiles[i].terrain = firstTerrain
+                n++
+                q++
+            }
+            if (q > 99) {
+                n = n + 20
+            }
+        }
+        if (n > number) {
+            createTer()
+        } else {
+            extra++
+            keepLooking()
         }
     }
-    if (n > number) {
-        createTer()
-    } else {
-        extra++
-        keepLooking()
-    }
-}
 
-createTer()
+    createTer()
+
+}
 
 var allRes = ["Vision", "Stamina", "Power", "Vibration", "Craft", "Accuracy", "Muscle", "Intelligence", "Knowledge", "Coordination", "Height", "Reach", "Illumination", "Divinity", "Seed", "Electric", "Force", "Encryption", "Lung", "Bone", "Blood", "Salt", "Keratin", "Fang", "Gold", "Hydrogen", "Plastic", "Metal", "Copper", "Starlight"]
 
@@ -611,7 +609,7 @@ function dbToBoard(data) {
 
 }
 
-function tilesDatabase(session) {
+function tilesDatabase(tiles, gameId) {
     for (var i = 0; i < tiles.length; i++) {
         var tileForDatabase = {
             x: tiles[i].number.x,
@@ -619,7 +617,7 @@ function tilesDatabase(session) {
             resType: tiles[i].res.type || "",
             resAmount: tiles[i].res.quantity || "",
             terrain: tiles[i].terrain,
-            GameId: session.game
+            GameId: gameId
         }
 
         $.ajax({
@@ -779,7 +777,7 @@ function pieceAction() {
     $.ajax({
         type: "GET",
         url: "/api/get-session"
-    }).then(function(data) {
+    }).then(function (data) {
         $(".pieceImage").off()
         $(".pieceImage").on("click", function () {
             let id = $(this).attr("id")
@@ -788,73 +786,73 @@ function pieceAction() {
             console.log(owner)
         })
     })
-    
-    
-//     .then(function (data) {
-//         user = data.name
-//         return $.ajax({
-//             type: "GET",
-//             url: "/api/pieces"
-//         })
-//     }).then(function (data) {
-//         console.log("Piece Action: ", data)
-//         data.forEach(piece => {
-//             console.log("piece: ", piece)
-//             if (piece.owner === user) {
-//                 let pieceKno = piece.knowledgeCollect
-//                 let pieceInt = piece.intelligenceCollect
-//                 let changeAmount = 1
-//                 let resId = piece.Player.Resources[0].id
-//                 let resType = piece.Tile.resType.toLowerCase()
-//                 let newTileRes = parseInt(piece.Tile.resAmount) - changeAmount
-//                 let newPlayerRes = piece.Player.Resources[0][resType] + changeAmount
-//                 let TileId = piece.TileId
-//                 console.log({
-//                     resId,
-//                     resType,
-//                     newTileRes,
-//                     newPlayerRes,
-//                     TileId
-//                 })
-//                 console.log(piece)
-//                 console.log(piece.Tile.resAmount, typeof piece.Tile.resAmount)
-//                 let transferObj = {
-//                     resId,
-//                     resType,
-//                     newTileRes,
-//                     newPlayerRes,
-//                     TileId
-//                 }
 
 
-//                 switch (resType) {
-//                     case "copper":
-//                     case "plastic":
-//                     case "lung":
-//                     case "muscle":
-//                     case "vision":
-//                     case "bone":
-//                     case "blood":
-//                     case "salt":
-//                     case "keratin":
-//                     case "spike":
-//                     case "stamina":
-//                     case "hydrogen":
-//                     case "gold":
-//                         if (pieceKno) {
-//                             transferRes(transferObj)
-//                         }
-//                         break;
+    //     .then(function (data) {
+    //         user = data.name
+    //         return $.ajax({
+    //             type: "GET",
+    //             url: "/api/pieces"
+    //         })
+    //     }).then(function (data) {
+    //         console.log("Piece Action: ", data)
+    //         data.forEach(piece => {
+    //             console.log("piece: ", piece)
+    //             if (piece.owner === user) {
+    //                 let pieceKno = piece.knowledgeCollect
+    //                 let pieceInt = piece.intelligenceCollect
+    //                 let changeAmount = 1
+    //                 let resId = piece.Player.Resources[0].id
+    //                 let resType = piece.Tile.resType.toLowerCase()
+    //                 let newTileRes = parseInt(piece.Tile.resAmount) - changeAmount
+    //                 let newPlayerRes = piece.Player.Resources[0][resType] + changeAmount
+    //                 let TileId = piece.TileId
+    //                 console.log({
+    //                     resId,
+    //                     resType,
+    //                     newTileRes,
+    //                     newPlayerRes,
+    //                     TileId
+    //                 })
+    //                 console.log(piece)
+    //                 console.log(piece.Tile.resAmount, typeof piece.Tile.resAmount)
+    //                 let transferObj = {
+    //                     resId,
+    //                     resType,
+    //                     newTileRes,
+    //                     newPlayerRes,
+    //                     TileId
+    //                 }
 
-//                     default:
-//                         break;
-//                 }
+
+    //                 switch (resType) {
+    //                     case "copper":
+    //                     case "plastic":
+    //                     case "lung":
+    //                     case "muscle":
+    //                     case "vision":
+    //                     case "bone":
+    //                     case "blood":
+    //                     case "salt":
+    //                     case "keratin":
+    //                     case "spike":
+    //                     case "stamina":
+    //                     case "hydrogen":
+    //                     case "gold":
+    //                         if (pieceKno) {
+    //                             transferRes(transferObj)
+    //                         }
+    //                         break;
+
+    //                     default:
+    //                         break;
+    //                 }
 
 
-//             }
-//         })
-//     })
-// }
+    //             }
+    //         })
+    //     })
+}
 
 
 
@@ -914,7 +912,7 @@ function endTurn() {
     $.ajax({
         type: "PUT",
         url: "/api/end-turn"
-    }).then(function(data) {
+    }).then(function (data) {
         console.log(data)
     })
 }
@@ -941,6 +939,8 @@ function session() {
 }
 
 function createGame(numberOfPlayers, game) {
+
+    //the tiles should be made in this function as well
 
     var allYears = ["Year of the Bird", "Year of the Elephant", "Year of the Cat", "Year of the Dragon", "Year of the Frog"]
 
